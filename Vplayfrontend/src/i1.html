@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet" />
+    
+    <title>Video Upload and Retrieval</title>
+</head>
+<body>
+    <h1>Video Upload and Retrieval</h1>
+    
+    <h2>Upload Video</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="video" accept="video/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="uploadStatus"></div>
+
+    <h2>Retrieve Video</h2>
+    <input type="text" id="videoFilename" placeholder="Enter video filename">
+    <button onclick="retrieveVideo()">Retrieve</button>
+    <br><br>
+    <video id="videoPlayer" controls style="display:none;">
+        Your browser does not support the video tag.
+    </video>
+
+    <h2>Available Videos</h2>
+    <ul id="videoList"></ul>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = 'Uploading...';
+            try {
+                const response = await fetch('http://localhost:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                const result = await response.json();
+                statusDiv.textContent = 'Video uploaded successfully. Filename: ' + result.filename;
+                fetchVideos(); // Refresh the video list
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.textContent = 'Upload failed: ' + error.message;
+            }
+        });
+
+        async function retrieveVideo() {
+            const filename = document.getElementById('videoFilename').value;
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.src = 'http://localhost:5000/video/' + filename;
+            videoPlayer.style.display = 'block';
+        }
+
+        async function fetchVideos() {
+            const videoList = document.getElementById('videoList');
+            videoList.innerHTML = 'Loading...';
+            try {
+                const response = await fetch('http://localhost:5000/videos');
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                const videos = await response.json();
+                videoList.innerHTML = '';
+                videos.forEach(video => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = video.filename;
+                    listItem.onclick = () => {
+                        const videoPlayer = document.getElementById('videoPlayer');
+                        videoPlayer.src = 'http://localhost:5000/video/' + video.filename;
+                        videoPlayer.style.display = 'block';
+                    };
+                    videoList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                videoList.textContent = 'Failed to load videos: ' + error.message;
+            }
+        }
+
+        // Fetch videos on page load
+        fetchVideos();
+    </script>
+</body>
+</html>

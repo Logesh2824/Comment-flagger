@@ -1,0 +1,31 @@
+.card-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+    padding: 40px;
+  }
+  
+  .card-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease-linear;
+    transform-style: preserve-3d;
+  }
+  
+  .card-body {
+    height: 300px;
+    width: 300px;
+    transform-style: preserve-3d;
+  }
+  
+  .card-item {
+    display: block;
+    transition: all 0.2s ease-linear;
+  }
+  
+  .card-item:hover {
+    transform: translateZ(50px);
+  }
+  
